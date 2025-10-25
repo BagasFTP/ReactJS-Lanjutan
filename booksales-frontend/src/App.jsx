@@ -16,6 +16,8 @@ import Dashboard from "./assets/pages";
 import AdminBooks from "./assets/pages/admin/books";
 import BookCreate from "./assets/pages/admin/books/create";
 import AdminTransactions from "./assets/pages/admin/transaction";
+import GenreEdit from "./assets/pages/admin/genres/edit";
+import AuthorEdit from "./assets/pages/admin/authors/edit";
 
 /* Authors & Genres */
 import AdminAuthors from "./assets/pages/admin/authors";
@@ -27,16 +29,19 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/books" element={<Books />} />
-          <Route path="/books/:id" element={<ShowBook />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        {/* 🔹 Default redirect ke Admin Dashboard */}
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+
+        {/* 🔹 Public routes (bisa diakses manual nanti) */}
+        <Route path="/public" element={<PublicLayout />}>
+          <Route index element={<Home />} />
+          <Route path="books" element={<Books />} />
+          <Route path="books/:id" element={<ShowBook />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
         </Route>
 
-        {/* Admin */}
+        {/* 🔹 Admin routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="books" element={<AdminBooks />} />
@@ -44,15 +49,17 @@ export default function App() {
 
           <Route path="authors" element={<AdminAuthors />} />
           <Route path="authors/create" element={<AuthorCreate />} />
+          <Route path="authors/:id/edit" element={<AuthorEdit />} />
 
           <Route path="genres" element={<AdminGenres />} />
           <Route path="genres/create" element={<GenreCreate />} />
+          <Route path="genres/:id/edit" element={<GenreEdit />} />
 
           <Route path="transactions" element={<AdminTransactions />} />
         </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 🔹 Fallback (jaga-jaga kalau path salah) */}
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </BrowserRouter>
   );

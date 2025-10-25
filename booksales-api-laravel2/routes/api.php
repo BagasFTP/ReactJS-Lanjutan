@@ -25,43 +25,35 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // ----------------------
-// 🔹 PUBLIC ROUTES (tanpa login)
+// 🔹 PUBLIC ROUTES (tanpa login, untuk tes React)
 // ----------------------
-// Author Routes (Public sementara)
+// AUTHOR CRUD
 Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{id}', [AuthorController::class, 'show']);
-Route::post('/authors', [AuthorController::class, 'store']); // <— sekarang public
+Route::post('/authors', [AuthorController::class, 'store']);
+Route::put('/authors/{id}', [AuthorController::class, 'update']);
+Route::delete('/authors/{id}', [AuthorController::class, 'destroy']);
 
-// Genre Routes (Public sementara)
+// GENRE CRUD
 Route::get('/genres', [GenreController::class, 'index']);
 Route::get('/genres/{id}', [GenreController::class, 'show']);
-Route::post('/genres', [GenreController::class, 'store']); // <— sekarang public
+Route::post('/genres', [GenreController::class, 'store']);
+Route::put('/genres/{id}', [GenreController::class, 'update']);
+Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
 
 // ----------------------
-// 🔹 ADMIN ONLY ROUTES
+// 🔹 ADMIN ONLY (aktif nanti setelah login/token jadi)
 // ----------------------
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-
-    // CRUD Author & Genre (jika nanti login sudah aktif, bisa pindah ke sini)
-    Route::put('/authors/{id}', [AuthorController::class, 'update']);
-    Route::delete('/authors/{id}', [AuthorController::class, 'destroy']);
-
-    Route::put('/genres/{id}', [GenreController::class, 'update']);
-    Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
-
-    // Books CRUD (optional)
     Route::apiResource('books', BookController::class);
-
-    // Transaction (Admin access: Read All + Delete)
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
 });
 
 // ----------------------
-// 🔹 CUSTOMER ROUTES
+// 🔹 CUSTOMER ROUTES (transaksi pembelian buku)
 // ----------------------
 Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
-    // Transaction (Customer access: Create, Show, Update)
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::get('/transactions/{id}', [TransactionController::class, 'show']);
     Route::put('/transactions/{id}', [TransactionController::class, 'update']);
