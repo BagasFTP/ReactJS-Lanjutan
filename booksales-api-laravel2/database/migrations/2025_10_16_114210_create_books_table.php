@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->string('title');
             $table->string('genre');
             $table->smallInteger('publication_year');
+            $table->string('cover_url')->nullable();
             $table->foreignId('author_id')->constrained('authors')->onDelete('cascade');
             $table->timestamps();
         });
