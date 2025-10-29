@@ -1,6 +1,25 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import { setAuthToken } from "../../utils/api";
+import { useEffect } from "react";
 
 export default function AdminLayout() {
+  const nav = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) nav("/public/login", { replace: true });
+  }, [nav]);
+
+  const logout = () => {
+    // optional: panggil /api/logout kalau mau
+    setAuthToken(null);
+    nav("/public/login", { replace: true });
+  };
+
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
+  })();
+
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* Sidebar */}
@@ -17,8 +36,14 @@ export default function AdminLayout() {
 
       {/* Content */}
       <main className="flex-1">
-        <header className="bg-white border-b p-4">
-          <h1 className="font-semibold">Admin</h1>
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="font-semibold">Admin</h1>
+            <p className="text-xs text-gray-500">{user?.email || "Logged in"}</p>
+          </div>
+          <button onClick={logout} className="px-3 py-2 rounded bg-rose-600 text-white hover:bg-rose-700">
+            Logout
+          </button>
         </header>
         <div className="p-6">
           <Outlet />
