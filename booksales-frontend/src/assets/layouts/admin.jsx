@@ -1,53 +1,31 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
-import { setAuthToken } from "../../utils/api";
-import { useEffect } from "react";
+// booksales-frontend/src/assets/layouts/admin.jsx
+import { Link, Outlet } from "react-router-dom";
+import { getUser, clearAuth } from "/src/utils/auth";
 
 export default function AdminLayout() {
-  const nav = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) nav("/public/login", { replace: true });
-  }, [nav]);
-
-  const logout = () => {
-    // optional: panggil /api/logout kalau mau
-    setAuthToken(null);
-    nav("/public/login", { replace: true });
-  };
-
-  const user = (() => {
-    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
-  })();
-
+  const user = getUser();
   return (
-    <div className="min-h-screen flex bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r">
-        <div className="p-4 font-bold text-lg">Admin Panel</div>
-        <nav className="space-y-1 px-2 pb-4">
-          <Link to="/admin" className="block px-3 py-2 rounded hover:bg-gray-100">Dashboard</Link>
-          <Link to="/admin/books" className="block px-3 py-2 rounded hover:bg-gray-100">Books</Link>
-          <Link to="/admin/authors" className="block px-3 py-2 rounded hover:bg-gray-100">Authors</Link>
-          <Link to="/admin/genres" className="block px-3 py-2 rounded hover:bg-gray-100">Genres</Link>
-          <Link to="/admin/transactions" className="block px-3 py-2 rounded hover:bg-gray-100">Transactions</Link>
-        </nav>
-      </aside>
-
-      {/* Content */}
-      <main className="flex-1">
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="font-semibold">Admin</h1>
-            <p className="text-xs text-gray-500">{user?.email || "Logged in"}</p>
-          </div>
-          <button onClick={logout} className="px-3 py-2 rounded bg-rose-600 text-white hover:bg-rose-700">
-            Logout
-          </button>
-        </header>
-        <div className="p-6">
-          <Outlet />
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b">
+        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
+          <Link to="/admin" className="font-semibold">Admin Panel</Link>
+          <nav className="flex items-center gap-3 text-sm">
+            <Link to="/admin/books" className="px-2 py-1 rounded bg-gray-100">Books</Link>
+            <Link to="/admin/authors" className="px-2 py-1 rounded bg-gray-100">Authors</Link>
+            <Link to="/admin/genres" className="px-2 py-1 rounded bg-gray-100">Genres</Link>
+            <Link to="/admin/transactions" className="px-2 py-1 rounded bg-gray-100">Transactions</Link>
+            <span className="text-gray-600">Hi, {user?.name || "Admin"}</span>
+            <button
+              onClick={() => { clearAuth(); location.href = "/login"; }}
+              className="px-3 py-1.5 rounded bg-rose-600 text-white"
+            >
+              Logout
+            </button>
+          </nav>
         </div>
+      </header>
+      <main className="max-w-6xl mx-auto p-4">
+        <Outlet />
       </main>
     </div>
   );

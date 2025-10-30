@@ -1,21 +1,18 @@
+// booksales-frontend/src/utils/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
-  headers: { Accept: "application/json" },
+  baseURL: "http://127.0.0.1:8000/api",
+  headers: { "Content-Type": "application/json", Accept: "application/json" },
 });
 
-export const setAuthToken = (token) => {
-  if (token) {
-    api.defaults.headers.common.Authorization = `Bearer ${token}`;
-    localStorage.setItem("token", token);
-  } else {
-    delete api.defaults.headers.common.Authorization;
-    localStorage.removeItem("token");
-  }
-};
-
-const saved = localStorage.getItem("token");
-if (saved) setAuthToken(saved);
+// Jangan kirim Authorization untuk login/register
+api.interceptors.request.use((config) => {
+  if (/\/(login|register)$/.test(config.url || "")) return config;
+  const raw = localStorage.getItem("auth");
+  const token = raw ? JSON.parse(raw).token : null;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 export default api;

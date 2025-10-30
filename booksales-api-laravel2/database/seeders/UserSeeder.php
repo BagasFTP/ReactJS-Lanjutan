@@ -1,31 +1,31 @@
 <?php
 
-namespace Database\Seeders;   // ← WAJIB persis begini
+namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-class UserSeeder extends Seeder   // ← Nama class HARUS sama dengan nama file (UserSeeder)
+class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Akun admin
+        // Admin user
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Site Admin',
-                'password' => Hash::make('password123'),
+                'name' => 'Admin',
+                'password' => Hash::make('admin123'),
                 'role' => 'admin',
             ]
         );
 
-        // Akun user biasa (opsional)
+        // Normal user
         User::updateOrCreate(
             ['email' => 'user@example.com'],
             [
                 'name' => 'Normal User',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('user123'),
                 'role' => 'user',
             ]
         );

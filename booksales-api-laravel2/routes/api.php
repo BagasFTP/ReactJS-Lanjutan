@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
@@ -8,53 +7,25 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\TransactionController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-| Semua route API ada di sini. Sanctum dipakai untuk autentikasi token.
-| Role dibedakan: admin vs customer (user biasa).
-|--------------------------------------------------------------------------
-*/
-
-// ----------------------
-// 🔹 AUTH ROUTES
-// ----------------------
-Route::post('/register', [AuthController::class, 'register']);
+// 🧩 Route publik
+Route::get('/ping', fn () => response()->json(['message' => 'pong']));
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/register', [AuthController::class, 'register']);
 
-// ----------------------
-// 🔹 PUBLIC ROUTES (tanpa login, untuk tes React)
-// ----------------------
-// AUTHOR CRUD
-Route::get('/authors', [AuthorController::class, 'index']);
-Route::get('/authors/{id}', [AuthorController::class, 'show']);
-Route::post('/authors', [AuthorController::class, 'store']);
-Route::put('/authors/{id}', [AuthorController::class, 'update']);
-Route::delete('/authors/{id}', [AuthorController::class, 'destroy']);
+// 🧩 Route yang butuh autentikasi (token Sanctum)
+Route::middleware('auth:sanctum')->group(function () {
+    // CRUD Genre
+    Route::apiResource('genres', GenreController::class);
 
-// GENRE CRUD
-Route::get('/genres', [GenreController::class, 'index']);
-Route::get('/genres/{id}', [GenreController::class, 'show']);
-Route::post('/genres', [GenreController::class, 'store']);
-Route::put('/genres/{id}', [GenreController::class, 'update']);
-Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
+    // CRUD Author
+    Route::apiResource('authors', AuthorController::class);
 
-// ----------------------
-// 🔹 ADMIN ONLY (aktif nanti setelah login/token jadi)
-// ----------------------
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // CRUD Book
     Route::apiResource('books', BookController::class);
-    Route::get('/transactions', [TransactionController::class, 'index']);
-    Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
-});
 
-// ----------------------
-// 🔹 CUSTOMER ROUTES (transaksi pembelian buku)
-// ----------------------
-Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
-    Route::post('/transactions', [TransactionController::class, 'store']);
-    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
-    Route::put('/transactions/{id}', [TransactionController::class, 'update']);
+    // CRUD Transaction
+    Route::apiResource('transactions', TransactionController::class);
+
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
 });

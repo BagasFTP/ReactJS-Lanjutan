@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(Request $r)
     {
-        $data = $request->validate([
-            'email'    => ['required','email'],
-            'password' => ['required'],
+        $data = $r->validate([
+            'email' => ['required','email'],
+            'password' => ['required','string','min:6'],
         ]);
 
-        $user = User::where('email', $data['email'])->first();
-
-        if (!$user || !Hash::check($data['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 422);
+        if (!Auth::attempt($data)) {
+            return response()->json(['message' => 'Email atau password salah.'], 401);
         }
 
+        $user = Auth::user();
+        // pastikan User model pakai HasApiTokens
         $token = $user->createToken('api')->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user' => $user,
             'token' => $token,
         ]);
     }

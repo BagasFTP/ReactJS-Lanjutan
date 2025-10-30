@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api, { setAuthToken } from "../../../utils/api";
+import api from "../../../utils/api";
+import { saveAuth } from "../../../utils/auth";
 
 const emailOk = (v) => /^\S+@\S+\.\S+$/.test(v || "");
 const min = (v, n) => (v || "").trim().length >= n;
@@ -29,7 +30,8 @@ export default function Register() {
     if (!min(form.name, 3)) e.name = "Nama minimal 3 karakter.";
     if (!emailOk(form.email)) e.email = "Format email tidak valid.";
     if (!min(form.username, 3)) e.username = "Username minimal 3 karakter.";
-    if (!min(form.password, 6)) e.password = "Password minimal 8 karakter.";
+    // pilih salah satu: 6 atau 8. Di sini konsisten 6:
+    if (!min(form.password, 6)) e.password = "Password minimal 6 karakter.";
     if (!form.agree) e.agree = "Wajib menyetujui ketentuan.";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -41,35 +43,35 @@ export default function Register() {
 
     setSubmitting(true);
     try {
-      // payload utama (banyak backend Laravel default tidak punya "username")
-      let payload = {
+      const payload = {
         name: form.name,
         email: form.email,
         password: form.password,
         password_confirmation: form.password,
       };
 
-      // Coba kirim dengan username lebih dulu
+      // NOTE: jika baseURL utils/api sudah /api, pakai "/register"
+      // kalau baseURL masih root (tanpa /api), ganti jadi "/api/register"
       try {
-        const withUsername = await api.post("/api/register", {
+        const withUsername = await api.post("/register", {
           ...payload,
           username: form.username,
         });
         handleSuccess(withUsername.data);
         return;
       } catch (e) {
-        // Kalau backend tidak mengenal "username" dan balas 422, kirim ulang tanpa username
         if (e?.response?.status !== 422) throw e;
-        const withoutUsername = await api.post("/api/register", payload);
+        const withoutUsername = await api.post("/register", payload);
         handleSuccess(withoutUsername.data);
         return;
       }
     } catch (err) {
       const res = err?.response;
       if (res?.status === 422 && res?.data?.errors) {
-        // Map error dari backend
         const be = {};
-        Object.entries(res.data.errors).forEach(([k, v]) => (be[k] = v?.[0] || "Invalid"));
+        Object.entries(res.data.errors).forEach(
+          ([k, v]) => (be[k] = v?.[0] || "Invalid")
+        );
         setErrors((s) => ({ ...s, ...be }));
       } else {
         alert(res?.data?.message || err.message || "Registrasi gagal.");
@@ -80,12 +82,20 @@ export default function Register() {
   };
 
   const handleSuccess = (data) => {
-    // Banyak controller register mengembalikan { user: {...}, token: "..." }
+    // Ekspektasi respons: { user: {...}, token: "..." }
+    const user = data?.user;
     const token = data?.token;
-    if (token) setAuthToken(token);
-    alert("Registrasi berhasil!");
-    // Arahkan ke dashboard admin (atau /login kalau ingin)
-    nav("/admin");
+
+    if (token && user) {
+      // simpan agar interceptor axios otomatis kirim Authorization
+      saveAuth({ user, token });
+      // kalau ada role admin → ke /admin, kalau tidak → ke /
+      if (user.role === "admin") nav("/admin");
+      else nav("/");
+    } else {
+      // kalau register tidak auto-login, arahkan ke login
+      nav("/login");
+    }
   };
 
   return (
@@ -198,13 +208,12 @@ export default function Register() {
 
           <p className="text-sm text-gray-500 mt-6">
             Sudah punya akun?{" "}
-            <Link to="/public/login" className="text-indigo-600 hover:underline">
+            <Link to="/login" className="text-indigo-600 hover:underline">
               Masuk
             </Link>
           </p>
         </div>
 
-        {/* Footer kecil */}
         <p className="text-center text-xs text-gray-400 mt-4">
           © {new Date().getFullYear()} BookSales. All rights reserved.
         </p>
